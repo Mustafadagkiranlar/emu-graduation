@@ -1,0 +1,31 @@
+##################
+#
+# Todo items are marked with "-"
+# Functions are marked with "*"
+#
+##################
+
+webpage opens
+	show number of cars in school and number available or total paking space "ex 3/15"
+  -A function for calling all available cars from school database by passing paremeter we can filter to specific location
+  * getvehicles(location) {some code}
+
+Admin/Authority login
+  authenticate the admin and authority to use their own dashboard
+  - add database a user database with roles "isAdmin true or false", id and password
+  - depending on role show the dashboard of admin or authority
+  * login(id, password) {some code}
+
+Admin dashboard
+  change or create authority accound requires
+  - account creation [id, password and confirm password]
+  - account update [id, new password and confirm new password]
+  * addaccount(id, password, confirm password) {some code}
+  * updateaccount(id, password, confirm password) {some code}
+
+Authority dashboard
+  - get wanted vehicle from database; if vehicle has a is wanted flag set to true then show it
+  - record all data of the vehicle weekly to show weekly and daily report for authority
+  - get all vehicles parked in the school
+  * getwantedvehicles() {some code}
+  * getvicles() {some code}

@@ -107,8 +107,11 @@ if __name__ == "__main__":
                 "plate": f"{plate}",
                 "enterance": f"{now}",
                 "photo": response["secure_url"],
-                "location": "Compute Engineering Department",
+                "location": "Computer Engineering Department",
                 "isWanted": False,
+                "day": datetime.today().day,
+                "month": datetime.today().month,
+                "week": datetime.today().weekday(),
             }
             isWanted = database.find_authority(plate, data)
             if isWanted:

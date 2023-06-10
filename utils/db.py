@@ -15,6 +15,7 @@ class Database:
         self.db_authority = self.db["authority"]
         self.db_school = self.db["school"]
         self.db_camplate = self.db["camplate"]
+        self.db_records = self.db["records"]
 
     def find_authority(self, plate, data):
         # FIND DOCUMENTS for authority
@@ -65,6 +66,7 @@ class Database:
         my_doc = self.db_camplate.find_one_and_update(
             {"plate": f"{plate}"}, {"$set": data}, new=True
         )
+        self.db_records.insert_one(data)
         if my_doc is not None:
             # print("Updated plate:")
             # print(my_doc)

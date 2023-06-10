@@ -56,10 +56,14 @@ router.post('/login', async (req, res) => {
   const user = await db.collection("users").findOne({username:username, password:password});
   if (!user) {
     res.json({
+      result:0,
       message: "Username or password is incorrect",
     });
     return;
   }
-  res.json(user);
+  res.json({
+    result:1,
+    user
+  });
 });
 module.exports = router;

@@ -49,6 +49,7 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
     res.json({
+      result:0,
       message: "Please fill all the fields",
     });
     return;

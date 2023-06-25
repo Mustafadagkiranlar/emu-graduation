@@ -2,6 +2,8 @@
 but seperated from other stuff"""
 
 import cv2
+import time
+import serial
 import imutils
 import easyocr
 import schedule
@@ -22,6 +24,7 @@ class LicensePlateDetector:
     def detect(self, frame):
         # Resize the image to a fixed size for consistent processing
         img = cv2.resize(frame, (600, 600))
+        cv2.imshow("frame", img)
 
         # Convert the image to grayscale and apply a bilateral filter for noise reduction
         gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
@@ -65,6 +68,17 @@ class LicensePlateDetector:
                 return plate
         else:
             return None
+        
+class DoorController:
+    def __init__(self) -> None:
+        serial_port = '/dev/ttyACM0'  # Replace with the appropriate serial port
+        baud_rate = 9600
+        self.ser = serial.Serial(serial_port, baud_rate)
+        print("Initializing door controller...")
+        time.sleep(0.2)  # Wait for the Arduino to initialize
+
+    def send_command(self,command):
+        self.ser.write(command.encode())
 
 
 def reset_plates():
@@ -73,10 +87,12 @@ def reset_plates():
 
 
 if __name__ == "__main__":
-    schedule.every(5).minutes.do(reset_plates)
+    schedule.every(10).seconds.do(reset_plates)
     database = db.Database()
     detector = LicensePlateDetector()
-    cap = cv2.VideoCapture("sources/plate1.mp4")
+    enterance_controller = DoorController()
+    # cap = cv2.VideoCapture("sources/plate1.mp4")
+    cap = cv2.VideoCapture(2)
 
     cloudinary.config(
         cloud_name="dbul788xz",
@@ -86,49 +102,66 @@ if __name__ == "__main__":
     )
 
     past_plates = []
-
+    
     while cap.isOpened():
         schedule.run_pending()
         ret, frame = cap.read()
         if not ret:
             break
-
+        
         plate = detector.detect(frame)
 
-        if plate is not None and plate not in past_plates:
+        if plate is not None:
+            if len(plate) > 5:
+                plate = plate.replace(" ", "")
+                plate = plate.replace(")", "")
+                plate = plate.replace("(", "")
+                plate = plate.replace("[", "")
+                plate = plate.replace("]", "")
+                plate = plate.replace("|", "")
+                plate = plate.replace(".", "")
+                plate = plate.replace(",", "")
+                plate = plate.replace("/", "")
+                plate = plate.replace("~", "")
+                plate = plate.replace("'", "")
+
+        if plate is not None and plate not in past_plates and len(plate) >=5:
             past_plates.append(plate)
             print(f"Detected license plate: {plate}")
             # start checking plate
             now = datetime.now().strftime("%d %m %Y %H:%M")
-            image_name = f"vehicles/{plate}-{now}.jpg"
+            image_name_now= datetime.now().strftime("%d-%m-%Y-%H-%M")
+            image_name = f"vehicles/{plate}-{image_name_now}.jpg"
             cv2.imwrite(image_name, frame)
             response = upload(image_name)
             data = {
                 "plate": f"{plate}",
                 "enterance": f"{now}",
                 "photo": response["secure_url"],
-                "location": "Computer Engineering Department",
+                "location": "CMSE",
                 "isWanted": False,
                 "day": datetime.today().day,
                 "month": datetime.today().month,
-                "week": datetime.today().weekday(),
+                "week": int(datetime.today().strftime("%V")),
             }
             isWanted = database.find_authority(plate, data)
             if isWanted:
-                # TODO send signal to gate controller to not open the gate
                 print("Wanted by authority don't open the gate")
+                enterance_controller.send_command("u")
                 pass
             else:
                 # check school database to confirm plate
                 isRegistered = database.find_school(plate, data)
                 if isRegistered:
-                    # TODO send signal to gate controller to open the gate
                     print("Registered plate open the gate")
+                    enterance_controller.send_command("o")
                     pass
                 else:
-                    # TODO send signal to gate controller to not open the gate
                     print("Not registered plate don't open the gate")
+                    enterance_controller.send_command("c")
                     pass
+        if cv2.waitKey(1) & 0xFF == ord('q'):
+            break
 
     cap.release()
     cv2.destroyAllWindows()

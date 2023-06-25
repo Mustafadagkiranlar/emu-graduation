@@ -83,6 +83,21 @@ class Database:
 
         try:
             result = self.db_camplate.insert_one(data)
+            # return a friendly error if the operation fails
+        except pymongo.errors.OperationFailure:
+            print(
+                "An authentication error was received. Are you sure your database user is authorized to perform write operations?"
+            )
+
+    def remove(self, data):
+        # INSERT DOCUMENTS
+        #
+        # You can insert individual documents using collection.insert_one().
+        # In this example, we're going to create four documents and then
+        # insert them all with insert_many().
+
+        try:
+            result = self.db_camplate.delete_one(data)
 
             # return a friendly error if the operation fails
         except pymongo.errors.OperationFailure:

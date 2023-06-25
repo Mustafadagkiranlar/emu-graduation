@@ -6,7 +6,7 @@ const plates = require("./routes/plates");
 const users = require("./routes/users");
 
 const app = express();
-const port = 8010;
+const port = 8050;
 app.use(cors())
 
 app.use(bodyParser.json());

@@ -1,6 +1,7 @@
 """same detection code as detector.py
 but seperated from other stuff"""
 
+import re
 import cv2
 import time
 import serial
@@ -113,17 +114,7 @@ if __name__ == "__main__":
 
         if plate is not None:
             if len(plate) > 5:
-                plate = plate.replace(" ", "")
-                plate = plate.replace(")", "")
-                plate = plate.replace("(", "")
-                plate = plate.replace("[", "")
-                plate = plate.replace("]", "")
-                plate = plate.replace("|", "")
-                plate = plate.replace(".", "")
-                plate = plate.replace(",", "")
-                plate = plate.replace("/", "")
-                plate = plate.replace("~", "")
-                plate = plate.replace("'", "")
+                plate = re.sub(r'[\s()\[\]|.,/~\']', '', plate)
 
         if plate is not None and plate not in past_plates and len(plate) >=5:
             past_plates.append(plate)
